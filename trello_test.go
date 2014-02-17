@@ -1,10 +1,10 @@
 package trello
 
 import (
-	"testing"
-	"sync"
-	"io/ioutil"
 	"encoding/json"
+	"io/ioutil"
+	"sync"
+	"testing"
 )
 
 type Creds struct {
@@ -13,7 +13,7 @@ type Creds struct {
 
 var (
 	creds Creds
-	load sync.Once
+	load  sync.Once
 )
 
 func loadCreds() {
@@ -38,7 +38,7 @@ func setupTest() {
 	}
 }
 
-func TestMember(t *testing.T) {
+func TestMemberUsername(t *testing.T) {
 	setupTest()
 
 	c := New(creds.Key, creds.Secret, creds.Token)
@@ -47,15 +47,51 @@ func TestMember(t *testing.T) {
 	if err != nil {
 		t.Errorf("member request: %s", err)
 	} else {
-		t.Logf("%s name %s bio %s", m.Username(), m.FullName(), m.Bio())
-		t.Logf("%+v", m.json)
+		t.Logf("%s", m.Username())
 	}
+}
 
-	if boards, err := m.Boards(); err != nil {
-		t.Errorf("board request: %s", err)
+func TestMemberFullName(t *testing.T) {
+	setupTest()
+
+	c := New(creds.Key, creds.Secret, creds.Token)
+	m, err := c.Member(creds.Member)
+
+	if err != nil {
+		t.Errorf("member request: %s", err)
 	} else {
-		for _, b := range boards {
-			t.Logf("board %+v", b.json)
+		t.Logf("%s", m.FullName())
+	}
+}
+
+func TestMemberBio(t *testing.T) {
+	setupTest()
+
+	c := New(creds.Key, creds.Secret, creds.Token)
+	m, err := c.Member(creds.Member)
+
+	if err != nil {
+		t.Errorf("member request: %s", err)
+	} else {
+		t.Logf("%s", m.Bio())
+	}
+}
+
+func TestMemberBoards(t *testing.T) {
+	setupTest()
+
+	c := New(creds.Key, creds.Secret, creds.Token)
+	m, err := c.Member(creds.Member)
+
+	if err != nil {
+		t.Errorf("member request: %s", err)
+	} else {
+		if boards, err := m.Boards(); err != nil {
+			t.Errorf("board request: %s", err)
+		} else {
+			for _, b := range boards {
+				t.Logf("board %+v", b.json)
+			}
 		}
 	}
 }

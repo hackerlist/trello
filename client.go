@@ -35,6 +35,10 @@ func (c *Client) Request(function string, extra url.Values) ([]byte, error) {
 
 	body, _ := ioutil.ReadAll(resp.Body)
 
+	if resp.StatusCode > 300 {
+		return nil, fmt.Errorf("%s: %s", resp.Status, body)
+	}
+
 	return body, nil
 }
 
