@@ -2,7 +2,6 @@ package trello
 
 import (
 	"encoding/json"
-	"log"
 )
 
 const memberurl = "/members/"
@@ -30,7 +29,7 @@ func (m *Member) Id() string {
 }
 
 func (m *Member) Username() string {
-	return m.json.FullName
+	return m.json.Username
 }
 
 func (m *Member) FullName() string {
@@ -58,8 +57,6 @@ func (m *Member) Boards() ([]Board, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	log.Printf("boards: %+v", boards)
 
 	var out []Board
 	for _, bd := range boards {
