@@ -95,3 +95,27 @@ func TestMemberBoards(t *testing.T) {
 		}
 	}
 }
+
+func TestCards(t *testing.T) {
+	setupTest()
+
+	c := New(creds.Key, creds.Secret, creds.Token)
+	m, err := c.Member(creds.Member)
+	if err != nil {
+		t.Errorf("member request: %s", err)
+	} else {
+		if boards, err := m.Boards(); err != nil {
+			t.Errorf("board request: %s", err)
+		} else {
+			for _, b := range boards {
+				if cards, err := b.Cards(); err != nil {
+					t.Errorf("card request: %s", err)
+				} else {
+					for _, c := range cards {
+						t.Logf("card %+v", c.json)
+					}
+				}
+			}
+		}
+	}
+}
