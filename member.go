@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 )
 
-const memberurl = "/members/"
+const memberurl = "members"
 
 type memberJson struct {
 	Id              string
@@ -46,7 +46,7 @@ func (m *Member) Bio() string {
 
 // Get a Member's boards
 func (m *Member) Boards() ([]Board, error) {
-	b, err := m.c.Request(memberurl+m.username+"/boards", nil)
+	b, err := m.c.Request("GET", memberurl+"/"+m.username+"/boards", nil, nil)
 	if err != nil {
 		return nil, err
 	}

@@ -8,7 +8,7 @@ import (
 )
 
 type Creds struct {
-	Key, Secret, Token, Member string
+	Key, Secret, Token, Member, Organization string
 }
 
 var (
@@ -77,12 +77,11 @@ func TestMemberBio(t *testing.T) {
 	}
 }
 
-func TestMemberBoards(t *testing.T) {
+func TestMemberListCards(t *testing.T) {
 	setupTest()
 
 	c := New(creds.Key, creds.Secret, creds.Token)
 	m, err := c.Member(creds.Member)
-
 	if err != nil {
 		t.Errorf("member request: %s", err)
 	} else {
@@ -90,21 +89,81 @@ func TestMemberBoards(t *testing.T) {
 			t.Errorf("board request: %s", err)
 		} else {
 			for _, b := range boards {
-				t.Logf("board %+v", b.json)
+				if lists, err := b.Lists(); err != nil {
+					t.Errorf("list request: %s", err)
+				} else {
+					for _, l := range lists {
+						if cards, err := l.Cards(); err != nil {
+							t.Errorf("card request: %s", err)
+						} else {
+							for _, c := range cards {
+								t.Logf("card %+v", c.json)
+							}
+						}
+					}
+				}
 			}
 		}
 	}
 }
 
-func TestCards(t *testing.T) {
+func TestOrganizationMembers(t *testing.T) {
 	setupTest()
 
 	c := New(creds.Key, creds.Secret, creds.Token)
-	m, err := c.Member(creds.Member)
+	o, err := c.Organization(creds.Organization)
 	if err != nil {
-		t.Errorf("member request: %s", err)
+		t.Errorf("organization request: %s", err)
 	} else {
-		if boards, err := m.Boards(); err != nil {
+		if members, err := o.Members(); err != nil {
+			t.Errorf("members request: %s", err)
+		} else {
+			for _, m := range members {
+				t.Logf("%+v", m.json)
+			}
+		}
+	}
+}
+
+func TestOrganizationBoardListsCards(t *testing.T) {
+	setupTest()
+
+	c := New(creds.Key, creds.Secret, creds.Token)
+	o, err := c.Organization(creds.Organization)
+	if err != nil {
+		t.Errorf("organization request: %s", err)
+	} else {
+		if boards, err := o.Boards(); err != nil {
+			t.Errorf("board request: %s", err)
+		} else {
+			for _, b := range boards {
+				if lists, err := b.Lists(); err != nil {
+					t.Errorf("list request: %s", err)
+				} else {
+					for _, l := range lists {
+						if cards, err := l.Cards(); err != nil {
+							t.Errorf("card request: %s", err)
+						} else {
+							for _, c := range cards {
+								t.Logf("card %+v", c.json)
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+func TestOrganizationCardAddComment(t *testing.T) {
+	setupTest()
+
+	c := New(creds.Key, creds.Secret, creds.Token)
+	o, err := c.Organization(creds.Organization)
+	if err != nil {
+		t.Errorf("organization request: %s", err)
+	} else {
+		if boards, err := o.Boards(); err != nil {
 			t.Errorf("board request: %s", err)
 		} else {
 			for _, b := range boards {
@@ -112,7 +171,11 @@ func TestCards(t *testing.T) {
 					t.Errorf("card request: %s", err)
 				} else {
 					for _, c := range cards {
-						t.Logf("card %+v", c.json)
+						if c.Name() == "test" {
+							if err := c.AddComment("test"); err != nil {
+								t.Errorf("addcomment error: %s", err)
+							}
+						}
 					}
 				}
 			}

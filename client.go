@@ -3,12 +3,13 @@ package trello
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 )
 
-const trellourl = "https://api.trello.com/1"
+const trellourl = "https://api.trello.com/1/"
 
 type Client struct {
 	apikey    string
@@ -20,13 +21,15 @@ func New(key, secret, token string) *Client {
 	return &Client{key, secret, token}
 }
 
-func (c *Client) Request(function string, extra url.Values) ([]byte, error) {
+func (c *Client) Request(method, function string, postbody io.Reader, extra url.Values) ([]byte, error) {
 	postdata := url.Values{"key": {c.apikey}, "token": {c.apitoken}}
 	for k, v := range extra {
 		postdata[k] = v
 	}
 	url := trellourl + function + "?" + postdata.Encode()
-	resp, err := http.Get(url)
+	req, err := http.NewRequest(method, url, postbody)
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +47,7 @@ func (c *Client) Request(function string, extra url.Values) ([]byte, error) {
 
 func (c *Client) Member(username string) (*Member, error) {
 	extra := url.Values{"fields": {"username,fullName,url,bio,idBoards,idOrganizations"}}
-	b, err := c.Request(memberurl+username, extra)
+	b, err := c.Request("GET", memberurl+"/"+username, nil, extra)
 	if err != nil {
 		return nil, err
 	}
@@ -60,6 +63,82 @@ func (c *Client) Member(username string) (*Member, error) {
 	}
 
 	return &m, nil
+}
+
+func (c *Client) Organization(name string) (*Organization, error) {
+	b, err := c.Request("GET", orgurl+"/"+name, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	o := Organization{
+		name: name,
+		c:    c,
+	}
+	err = json.Unmarshal(b, &o.json)
+	if err != nil {
+		return nil, err
+	}
+
+	return &o, nil
+}
+
+func (c *Client) Board(id string) (*Board, error) {
+	b, err := c.Request("GET", boardurl+"/"+id, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	board := Board{
+		id: id,
+		c:  c,
+	}
+
+	err = json.Unmarshal(b, &board.json)
+	if err != nil {
+		return nil, err
+	}
+
+	return &board, nil
+}
+
+func (c *Client) List(id string) (*List, error) {
+	b, err := c.Request("GET", listurl+"/"+id, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	l := List{
+		id: id,
+		c:  c,
+	}
+
+	err = json.Unmarshal(b, &l.json)
+	if err != nil {
+		return nil, err
+	}
+
+	return &l, nil
+}
+
+func (c *Client) Card(id string) (*Card, error) {
+	b, err := c.Request("GET", cardurl+"/"+id, nil, nil)
+
+	if err != nil {
+		return nil, err
+	}
+
+	card := Card{
+		id: id,
+		c:  c,
+	}
+
+	err = json.Unmarshal(b, &card.json)
+	if err != nil {
+		return nil, err
+	}
+
+	return &card, nil
 }
 
 func getfield(js []byte, field string) (string, error) {
