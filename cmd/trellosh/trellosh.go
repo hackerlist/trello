@@ -320,11 +320,17 @@ func cardrepl(id string, sc *bufio.Scanner) error {
 			case "checklists":
 				last = checklist
 				last()
+			case "checklist":
+				if len(f) > 1 {
+					checklistrepl(f[1], sc)
+				} else {
+					fmt.Printf("usage: checklist id\n")
+				}
 			default:
 				fallthrough
 			case "help":
 				fmt.Printf("commands:\n")
-				for _, cmd := range []string{"actions", "comment text"} {
+				for _, cmd := range []string{"actions", "comment text", "checklists", "checklist id"} {
 					fmt.Printf("  %s\n", cmd)
 				}
 			case "exit":
@@ -348,6 +354,91 @@ func checklistsprint(checklists []*trello.Checklist) {
 	for _, cl := range checklists {
 		fmt.Printf("%-24.24s %-20.20s\n", cl.Id, cl.Name)
 	}
+}
+
+func checkitemsprint(checkitems []*trello.CheckItem) {
+	fmt.Printf("%-24.24s %-20.20s %-10.10s\n", "id", "name", "state")
+	for _, cl := range checkitems {
+		fmt.Printf("%-24.24s %-20.20s %-10.10s\n", cl.Id, cl.Name, cl.State)
+	}
+
+}
+
+func checklistrepl(id string, sc *bufio.Scanner) error {
+	checklist, err := c.Checklist(id)
+	if err != nil {
+		fmt.Printf("load checlist error: %s\n", err)
+		return err
+	}
+
+	var last func()
+
+	checklistf := func() {
+		if checklist, err = c.Checklist(id); err != nil {
+			fmt.Printf("checklist error: %s\n", err)
+		} else {
+			checkitemsprint(checklist.CheckItems)
+		}
+	}
+
+	last = checklistf
+
+	last()
+
+	fmt.Printf("checklist %s> ", checklist.Name)
+	for sc.Scan() {
+		f := strings.Fields(sc.Text())
+		if len(f) < 1 {
+			if last != nil {
+				last()
+			}
+		} else {
+			switch f[0] {
+			case "additem":
+				if len(f) > 1 {
+					checklist.AddItem(strings.Join(f[1:], " "))
+				} else {
+					fmt.Printf("usage: additem name...\n")
+				}
+				checklistf()
+			case "checkitems":
+				last = checklistf
+				last()
+			case "uncheck":
+				fallthrough
+			case "check":
+				if len(f) > 1 {
+					for _, ci := range checklist.CheckItems {
+						if ci.Id == f[1] {
+							switch f[0] {
+							case "check":
+								err = checklist.CheckItem(ci.Id, true)
+							case "uncheck":
+								err = checklist.CheckItem(ci.Id, false)
+							}
+							if err != nil {
+								fmt.Printf("%s error: %s\n", f[0], err)
+							}
+						}
+					}
+				} else {
+					fmt.Printf("usage: %s id\n", f[0])
+				}
+
+			default:
+				fallthrough
+			case "help":
+				fmt.Printf("commands:\n")
+				for _, cmd := range []string{"additem name...", "checkitems", "check id", "uncheck id"} {
+					fmt.Printf("  %s\n", cmd)
+				}
+			case "exit":
+				return nil
+			}
+		}
+		fmt.Printf("checklist %s> ", checklist.Name)
+	}
+	return sc.Err()
 }
 
 func membersprint(members []*trello.Member) {

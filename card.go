@@ -64,6 +64,10 @@ func (c *Card) AddComment(comment string) error {
 	return nil
 }
 
+func (c *Card) AddChecklist(name string) (*Checklist, error) {
+	return nil, nil
+}
+
 // Checklists retrieves all checklists from a trello card
 func (c *Card) Checklists() ([]*Checklist, error) {
 	b, err := c.c.Request("GET", cardurl+"/"+c.Id+"/checklists", nil, nil)
@@ -71,18 +75,21 @@ func (c *Card) Checklists() ([]*Checklist, error) {
 		return nil, err
 	}
 
-	var cl []*Checklist
+	var checklists []*Checklist
 
-	err = json.Unmarshal(b, &cl)
+	err = json.Unmarshal(b, &checklists)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, ci := range cl {
-		ci.c = c.c
+	for _, checklist := range checklists {
+		checklist.c = c.c
+		for _, ci := range checklist.CheckItems {
+			ci.c = c.c
+		}
 	}
 
-	return cl, nil
+	return checklists, nil
 }
 
 // Actions retrieves a list of all actions (e.g. events, activity)
