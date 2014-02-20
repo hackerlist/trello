@@ -2,6 +2,8 @@
 *.o
 *.a
 *.so
+trello.json
+*~
 
 # Folders
 _obj

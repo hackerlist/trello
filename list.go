@@ -20,6 +20,25 @@ type List struct {
 	json *listJson
 }
 
+func (c *Client) List(id string) (*List, error) {
+	b, err := c.Request("GET", listurl+"/"+id, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	l := List{
+		id: id,
+		c:  c,
+	}
+
+	err = json.Unmarshal(b, &l.json)
+	if err != nil {
+		return nil, err
+	}
+
+	return &l, nil
+}
+
 func (l *List) Id() string {
 	return l.json.Id
 }

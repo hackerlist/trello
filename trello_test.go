@@ -107,6 +107,13 @@ func TestMemberListCards(t *testing.T) {
 	}
 }
 
+func TestMemberListCardsChecklists(t *testing.T) {
+	setupTest()
+
+	c := New(creds.Key, creds.Secret, creds.Token)
+	// NotImplemented
+}
+
 func TestOrganizationMembers(t *testing.T) {
 	setupTest()
 

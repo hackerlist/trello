@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-var cardurl = "cards"
+const cardurl = "cards"
 
 type cardJson struct {
 	//	Badges
@@ -48,6 +48,27 @@ func (c *Card) Name() string {
 	return c.json.Name
 }
 
+// Card retrieves a trello card by ID
+func (c *Client) Card(id string) (*Card, error) {
+	b, err := c.Request("GET", cardurl+"/"+id, nil, nil)
+
+	if err != nil {
+		return nil, err
+	}
+
+	card := Card{
+		id: id,
+		c:  c,
+	}
+
+	err = json.Unmarshal(b, &card.json)
+	if err != nil {
+		return nil, err
+	}
+
+	return &card, nil
+}
+
 func (c *Card) AddComment(comment string) error {
 	extra := url.Values{"text": {comment}}
 	_, err := c.c.Request("POST", cardurl+"/"+c.id+"/actions/comments", nil, extra)
@@ -57,6 +78,36 @@ func (c *Card) AddComment(comment string) error {
 	return nil
 }
 
+// Checklists retrieves all checklists from a trello card
+func (c *Card) Checklists() ([]Checklist, error) {
+	b, err := c.c.Request("GET", cardurl+"/"+c.id+"/checklists", nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var cl []checklistJson
+
+	err = json.Unmarshal(b, &cl)
+	if err != nil {
+		return nil, err
+	}
+
+	var out []Checklist
+	for _, ci := range cl {
+		cljson := ci
+		checklist := Checklist{
+			id:   ci.Id,
+			c:    c.c,
+			json: &cljson,
+		}
+		out = append(out, checklist)
+	}
+
+	return out, nil
+}
+
+// Actions retrieves a list of all actions (e.g. events, activity)
+// performed on a card
 func (c *Card) Actions() ([]Action, error) {
 	b, err := c.c.Request("GET", cardurl+"/"+c.id+"/actions", nil, nil)
 	if err != nil {

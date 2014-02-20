@@ -25,6 +25,25 @@ type Organization struct {
 	json *organizationJson
 }
 
+// Organization retrieves a trello organization
+func (c *Client) Organization(name string) (*Organization, error) {
+	b, err := c.Request("GET", orgurl+"/"+name, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	o := Organization{
+		name: name,
+		c:    c,
+	}
+	err = json.Unmarshal(b, &o.json)
+	if err != nil {
+		return nil, err
+	}
+
+	return &o, nil
+}
+
 func (o *Organization) Desc() string {
 	return o.json.Desc
 }

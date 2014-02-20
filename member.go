@@ -2,6 +2,7 @@ package trello
 
 import (
 	"encoding/json"
+	"net/url"
 )
 
 const memberurl = "members"
@@ -24,6 +25,27 @@ type Member struct {
 	json *memberJson
 }
 
+// Member retrieves a trello member's (user) info
+func (c *Client) Member(username string) (*Member, error) {
+	extra := url.Values{"fields": {"username,fullName,url,bio,idBoards,idOrganizations"}}
+	b, err := c.Request("GET", memberurl+"/"+username, nil, extra)
+	if err != nil {
+		return nil, err
+	}
+
+	m := Member{
+		username: username,
+		c:        c,
+	}
+
+	err = json.Unmarshal(b, &m.json)
+	if err != nil {
+		return nil, err
+	}
+
+	return &m, nil
+}
+
 func (m *Member) Id() string {
 	return m.json.Id
 }
@@ -42,31 +64,4 @@ func (m *Member) Url() string {
 
 func (m *Member) Bio() string {
 	return m.json.Bio
-}
-
-// Get a Member's boards
-func (m *Member) Boards() ([]Board, error) {
-	b, err := m.c.Request("GET", memberurl+"/"+m.username+"/boards", nil, nil)
-	if err != nil {
-		return nil, err
-	}
-	var boards []boardJson
-
-	err = json.Unmarshal(b, &boards)
-
-	if err != nil {
-		return nil, err
-	}
-
-	var out []Board
-	for _, bd := range boards {
-		bjson := bd
-		board := Board{
-			id:   bd.Id,
-			c:    m.c,
-			json: &bjson,
-		}
-		out = append(out, board)
-	}
-	return out, nil
 }
