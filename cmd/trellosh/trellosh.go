@@ -79,11 +79,19 @@ func main() {
 				} else {
 					fmt.Println("missing board argument\n")
 				}
+			case "createboard":
+				if len(f) > 1 {
+					if b, err := c.CreateBoard(f[1], nil); err != nil {
+						fmt.Printf("createboard error: %s\n", err)
+					} else {
+						boardsprint([]trello.Board{b})
+					}
+				}
 			default:
 				fallthrough
 			case "help":
 				fmt.Printf("commands:\n")
-				for _, cmd := range []string{"boards", "board id"} {
+				for _, cmd := range []string{"boards", "board id", "createboard name"} {
 					fmt.Printf("  %s\n", cmd)
 				}
 			case "exit":
@@ -316,7 +324,7 @@ func actionsprint(actions []trello.Action) {
 
 func membersprint(members []trello.Member) {
 	fmt.Printf("%-24.24s %-20.20s %-20.20s\n", "id", "username", "fullname")
-	for _, u := range memberS {
+	for _, u := range members {
 		fmt.Printf("%-24.24s %-20.20s %-20.20s\n", u.Id(), u.Username(), u.FullName())
 	}
 }
