@@ -37,7 +37,7 @@ func loadCreds() error {
 		return err
 	}
 
-	creds.Key = "09f16319e72a2488397b119be7560215"
+	//creds.Key = "09f16319e72a2488397b119be7560215"
 	return nil
 }
 
@@ -287,6 +287,14 @@ func cardrepl(id string, sc *bufio.Scanner) error {
 		}
 	}
 
+	checklist := func() {
+		if checklists, err := card.Checklists(); err != nil {
+			fmt.Printf("checklist error: %s\n", err)
+		} else {
+			checklistsprint(checklists)
+		}
+	}
+
 	last = actions
 
 	last()
@@ -308,6 +316,9 @@ func cardrepl(id string, sc *bufio.Scanner) error {
 				}
 			case "actions":
 				last = actions
+				last()				
+			case "checklists":
+				last = checklist
 				last()
 			default:
 				fallthrough
@@ -329,6 +340,13 @@ func actionsprint(actions []trello.Action) {
 	fmt.Printf("%-24.24s %-20.20s %-20.20s\n", "id", "type", "text")
 	for _, a := range actions {
 		fmt.Printf("%-24.24s %-20.20s %-20.20s\n", a.Id(), a.Type(), a.DataText())
+	}
+}
+
+func checklistsprint(checklists []trello.Checklist) {
+	fmt.Printf("%-24.24s %-20.20s\n", "id", "name")
+	for _, cl := range checklists {
+		fmt.Printf("%-24.24s %-20.20s\n", cl.Id(), cl.Name())
 	}
 }
 

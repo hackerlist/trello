@@ -38,6 +38,80 @@ type Board struct {
 	json *boardJson
 }
 
+// Get a Member's boards
+func (m *Member) Boards() ([]Board, error) {
+	b, err := m.c.Request("GET", memberurl+"/"+m.username+"/boards", nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	var boards []boardJson
+
+	err = json.Unmarshal(b, &boards)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var out []Board
+	for _, bd := range boards {
+		bjson := bd
+		board := Board{
+			id:   bd.Id,
+			c:    m.c,
+			json: &bjson,
+		}
+		out = append(out, board)
+	}
+	return out, nil
+}
+
+// CreateBoard creats a new board with the given name. Extra options can be passed
+// through the extra parameter. For details on options, see
+// https://trello.com/docs/api/board/index.html#post-1-boards
+func (c *Client) CreateBoard(name string, extra url.Values) (*Board, error) {
+	qp := url.Values{"name": {name}}
+	for k, v := range extra {
+		qp[k] = v
+	}
+
+	b, err := c.Request("POST", boardurl, nil, qp)
+	if err != nil {
+		return nil, err
+	}
+
+	board := Board{
+		c: c,
+	}
+
+	err = json.Unmarshal(b, &board.json)
+	if err != nil {
+		return nil, err
+	}
+
+	board.id = board.json.Id
+
+	return &board, nil
+}
+
+func (c *Client) Board(id string) (*Board, error) {
+	b, err := c.Request("GET", boardurl+"/"+id, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	board := Board{
+		id: id,
+		c:  c,
+	}
+
+	err = json.Unmarshal(b, &board.json)
+	if err != nil {
+		return nil, err
+	}
+
+	return &board, nil
+}
+
 func (b *Board) Desc() string {
 	return b.json.Desc
 }
