@@ -2,6 +2,7 @@ package trello
 
 import (
 	"encoding/json"
+	"net/url"
 	"time"
 )
 
@@ -103,4 +104,53 @@ func (b *Board) Lists() ([]List, error) {
 		out = append(out, *list)
 	}
 	return out, nil
+}
+
+// Members returns a list of the members of a board.
+func (b *Board) Members() ([]Member, error) {
+	js, err := b.c.Request("GET", boardurl+"/"+b.id+"/members", nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var memjs []struct{ Id string }
+
+	err = json.Unmarshal(js, &memjs)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var out []Member
+	for _, md := range memjs {
+		member, err := b.c.Member(md.Id)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, *member)
+	}
+	return out, nil
+}
+
+// Invite invites a member to a board by email.
+// fullname cannot begin or end with a space and must be at least 4 characters long.
+// typ may be one of normal, observer or admin.
+func (b *Board) Invite(email, fullname, typ string) error {
+	extra := url.Values{"email": {email}, "fullName": {fullname}, "type": {typ}}
+	_, err := b.c.Request("PUT", boardurl+"/"+b.id+"/members", nil, extra)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// AddMember adds an organization or member by id or name to a board.
+// typ may be one of normal, observer or admin.
+func (b *Board) AddMember(id, typ string) error {
+	extra := url.Values{"type": {typ}}
+	_, err := b.c.Request("PUT", boardurl+"/"+b.id+"/members/"+id, nil, extra)
+	if err != nil {
+		return err
+	}
+	return nil
 }

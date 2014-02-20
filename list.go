@@ -7,16 +7,16 @@ import (
 var listurl = "lists"
 
 type listJson struct {
-	Closed bool
-	Id string
+	Closed  bool
+	Id      string
 	IdBoard string
-	Name string
-	Pos float64
+	Name    string
+	Pos     float64
 }
 
 type List struct {
-	id string
-	c *Client
+	id   string
+	c    *Client
 	json *listJson
 }
 
@@ -54,4 +54,3 @@ func (l *List) Cards() ([]Card, error) {
 	}
 	return out, nil
 }
-

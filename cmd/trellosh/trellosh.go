@@ -140,11 +140,38 @@ func boardrepl(id string, sc *bufio.Scanner) error {
 				} else {
 					fmt.Println("missing list argument\n")
 				}
+			case "members":
+				last = func() {
+					if members, err := board.Members(); err != nil {
+						fmt.Printf("members error: %s\n", err)
+					} else {
+						membersprint(members)
+					}
+				}
+				last()
+			case "invite":
+				if len(f) > 3 {
+					if err := board.Invite(f[1], strings.Join(f[3:], " "), f[2]); err != nil {
+						fmt.Printf("invite error: %s\n", err)
+					}
+				} else {
+					fmt.Println("usage: invite email type fullname...\n")
+					fmt.Println("type may be one of: normal observer admin\n")
+				}
+			case "addmember":
+				if len(f) > 2 {
+					if err := board.AddMember(f[1], f[2]); err != nil {
+						fmt.Printf("addmember error: %s\n", err)
+					}
+				} else {
+					fmt.Println("usage: addmember id type...\n")
+					fmt.Println("type may be one of: normal observer admin\n")
+				}
 			default:
 				fallthrough
 			case "help":
 				fmt.Printf("commands:\n")
-				for _, cmd := range []string{"lists", "list id"} {
+				for _, cmd := range []string{"lists", "list id", "invite email type fullname...", "addmember id type"} {
 					fmt.Printf("  %s\n", cmd)
 				}
 			case "exit":
@@ -284,5 +311,12 @@ func actionsprint(actions []trello.Action) {
 	fmt.Printf("%-24.24s %-20.20s %-20.20s\n", "id", "type", "text")
 	for _, a := range actions {
 		fmt.Printf("%-24.24s %-20.20s %-20.20s\n", a.Id(), a.Type(), a.DataText())
+	}
+}
+
+func membersprint(members []trello.Member) {
+	fmt.Printf("%-24.24s %-20.20s %-20.20s\n", "id", "username", "fullname")
+	for _, u := range memberS {
+		fmt.Printf("%-24.24s %-20.20s %-20.20s\n", u.Id(), u.Username(), u.FullName())
 	}
 }

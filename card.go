@@ -2,8 +2,8 @@ package trello
 
 import (
 	"encoding/json"
-	"time"
 	"net/url"
+	"time"
 )
 
 var cardurl = "cards"
@@ -20,11 +20,11 @@ type cardJson struct {
 	//	IdAttachmentCover
 	IdBoard string
 	//	IdChecklists
-	IdList                string
-	IdMembers             []string
-	IdMembersVoted        []string
-	IdShort               float64
-//	Labels                []string
+	IdList         string
+	IdMembers      []string
+	IdMembersVoted []string
+	IdShort        float64
+	//	Labels                []string
 	ManualCoverAttachment bool
 	Name                  string
 	Pos                   float64
@@ -75,8 +75,8 @@ func (c *Card) Actions() ([]Action, error) {
 	for _, ad := range act {
 		ajson := ad
 		action := Action{
-			id: ad.Id,
-			c: c.c,
+			id:   ad.Id,
+			c:    c.c,
 			json: &ajson,
 		}
 		out = append(out, action)
@@ -84,4 +84,3 @@ func (c *Card) Actions() ([]Action, error) {
 
 	return out, nil
 }
-
