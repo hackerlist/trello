@@ -51,7 +51,17 @@ func (c *Client) Checklist(id string) (*Checklist, error) {
 }
 
 func (c *Checklist) AddItem(name string) (*CheckItem, error) {
-	return nil, nil
+	extra := url.Values{"name": {name}}
+
+	b, err := c.c.Request("POST", checklisturl+"/"+c.Id+"/checkItems", nil, extra)
+	if err != nil {
+		return nil, err
+	}
+
+	var ci *CheckItem
+	err = json.Unmarshal(b, &ci)
+
+	return ci, err
 }
 
 // CheckItem changes whether a checklist item id is marked as complete or not.

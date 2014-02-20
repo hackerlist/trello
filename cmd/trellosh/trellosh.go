@@ -326,11 +326,21 @@ func cardrepl(id string, sc *bufio.Scanner) error {
 				} else {
 					fmt.Printf("usage: checklist id\n")
 				}
+			case "addchecklist":
+				if len(f) > 1 {
+					if cl, err := card.AddChecklist(f[1]); err != nil {
+						fmt.Printf("addchecklist error: %s\n", err)
+					} else {
+						checklistsprint([]*trello.Checklist{cl})
+					}
+				} else {
+					fmt.Printf("usage: addchecklist name\n")
+				}
 			default:
 				fallthrough
 			case "help":
 				fmt.Printf("commands:\n")
-				for _, cmd := range []string{"actions", "comment text", "checklists", "checklist id"} {
+				for _, cmd := range []string{"actions", "comment text", "checklists", "checklist id", "addchecklist name"} {
 					fmt.Printf("  %s\n", cmd)
 				}
 			case "exit":
@@ -436,7 +446,11 @@ func checklistrepl(id string, sc *bufio.Scanner) error {
 				return nil
 			}
 		}
-		fmt.Printf("checklist %s> ", checklist.Name)
+		if checklist != nil {
+			fmt.Printf("checklist %s> ", checklist.Name)
+		} else {
+			return fmt.Errorf("checklist gone")
+		}
 	}
 	return sc.Err()
 }

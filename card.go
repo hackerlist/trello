@@ -64,8 +64,17 @@ func (c *Card) AddComment(comment string) error {
 	return nil
 }
 
+// AddChecklist created a new checklist on the card.
 func (c *Card) AddChecklist(name string) (*Checklist, error) {
-	return nil, nil
+	qp := url.Values{"name":{name}}
+	b, err := c.c.Request("POST", cardurl+"/"+c.Id+"/checklists", nil, qp)
+	if err != nil {
+		return nil, err
+	}
+
+	var cl *Checklist
+	err = json.Unmarshal(b, &cl)
+	return cl, err
 }
 
 // Checklists retrieves all checklists from a trello card
