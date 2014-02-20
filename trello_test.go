@@ -88,20 +88,26 @@ func TestMemberListCards(t *testing.T) {
 		if boards, err := m.Boards(); err != nil {
 			t.Errorf("board request: %s", err)
 		} else {
-			for _, b := range boards {
-				if lists, err := b.Lists(); err != nil {
+			if len(boards) > 0 {
+				if lists, err := boards[0].Lists(); err != nil {
 					t.Errorf("list request: %s", err)
 				} else {
-					for _, l := range lists {
-						if cards, err := l.Cards(); err != nil {
+					if len(lists) > 0 {
+						if cards, err := lists[0].Cards(); err != nil {
 							t.Errorf("card request: %s", err)
 						} else {
-							for _, c := range cards {
-								t.Logf("card %+v", c.json)
+							if len(cards) > 0 {
+								t.Logf("card %+v", cards[0].json)
+							} else {
+								t.Errorf("no cards")
 							}
 						}
+					} else {
+						t.Errorf("no lists")
 					}
 				}
+			} else {
+				t.Errorf("no boards")
 			}
 		}
 	}
