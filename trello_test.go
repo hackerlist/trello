@@ -47,7 +47,7 @@ func TestMemberUsername(t *testing.T) {
 	if err != nil {
 		t.Errorf("member request: %s", err)
 	} else {
-		t.Logf("%s", m.Username())
+		t.Logf("%s", m.Username)
 	}
 }
 
@@ -60,7 +60,7 @@ func TestMemberFullName(t *testing.T) {
 	if err != nil {
 		t.Errorf("member request: %s", err)
 	} else {
-		t.Logf("%s", m.FullName())
+		t.Logf("%s", m.FullName)
 	}
 }
 
@@ -73,7 +73,7 @@ func TestMemberBio(t *testing.T) {
 	if err != nil {
 		t.Errorf("member request: %s", err)
 	} else {
-		t.Logf("%s", m.Bio())
+		t.Logf("%s", m.Bio)
 	}
 }
 
@@ -97,7 +97,7 @@ func TestMemberListCards(t *testing.T) {
 							t.Errorf("card request: %s", err)
 						} else {
 							if len(cards) > 0 {
-								t.Logf("card %+v", cards[0].json)
+								t.Logf("card %+v", cards[0])
 							} else {
 								t.Errorf("no cards")
 							}
@@ -118,6 +118,38 @@ func TestMemberListCardsChecklists(t *testing.T) {
 
 	c := New(creds.Key, creds.Secret, creds.Token)
 	// NotImplemented
+	m, err := c.Member(creds.Member)
+	if err != nil {
+		t.Errorf("member request: %s", err)
+	} else {
+		if boards, err := m.Boards(); err != nil {
+			t.Errorf("board request: %s", err)
+		} else {
+			for _, b := range boards {
+				if b.Name == "test" {
+					if lists, err := b.Lists(); err != nil {
+						t.Errorf("no lists: %s", err)
+					} else {
+						for _, list := range lists {
+							if cards, err := list.Cards(); err != nil {
+								t.Errorf("card request: %s", err)
+							} else {
+								for _, card := range cards {
+									if checklists, err := card.Checklists(); err != nil {
+										t.Errorf("checklists request: %s", err)
+									} else {
+										for _, c := range checklists {
+											t.Logf("checklist %+v", c)
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 func TestOrganizationMembers(t *testing.T) {
@@ -132,7 +164,7 @@ func TestOrganizationMembers(t *testing.T) {
 			t.Errorf("members request: %s", err)
 		} else {
 			for _, m := range members {
-				t.Logf("%+v", m.json)
+				t.Logf("%+v", m)
 			}
 		}
 	}
@@ -158,7 +190,7 @@ func TestOrganizationBoardListsCards(t *testing.T) {
 							t.Errorf("card request: %s", err)
 						} else {
 							for _, c := range cards {
-								t.Logf("card %+v", c.json)
+								t.Logf("card %+v", c)
 							}
 						}
 					}
@@ -184,7 +216,7 @@ func TestOrganizationCardAddComment(t *testing.T) {
 					t.Errorf("card request: %s", err)
 				} else {
 					for _, c := range cards {
-						if c.Name() == "test" {
+						if c.Name == "test" {
 							if err := c.AddComment("test"); err != nil {
 								t.Errorf("addcomment error: %s", err)
 							}

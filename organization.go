@@ -6,7 +6,7 @@ import (
 
 var orgurl = "organizations"
 
-type organizationJson struct {
+type Organization struct {
 	Desc string
 	//	DescData
 	DisplayName string
@@ -17,12 +17,7 @@ type organizationJson struct {
 	//	Products
 	Url     string
 	Website string
-}
-
-type Organization struct {
-	name string
-	c    *Client
-	json *organizationJson
+	c       *Client `json:"-"`
 }
 
 // Organization retrieves a trello organization
@@ -33,10 +28,9 @@ func (c *Client) Organization(name string) (*Organization, error) {
 	}
 
 	o := Organization{
-		name: name,
-		c:    c,
+		c: c,
 	}
-	err = json.Unmarshal(b, &o.json)
+	err = json.Unmarshal(b, &o)
 	if err != nil {
 		return nil, err
 	}
@@ -44,12 +38,8 @@ func (c *Client) Organization(name string) (*Organization, error) {
 	return &o, nil
 }
 
-func (o *Organization) Desc() string {
-	return o.json.Desc
-}
-
-func (o *Organization) Members() ([]Member, error) {
-	b, err := o.c.Request("GET", orgurl+"/"+o.name+"/members", nil, nil)
+func (o *Organization) Members() ([]*Member, error) {
+	b, err := o.c.Request("GET", orgurl+"/"+o.Name+"/members", nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -61,24 +51,24 @@ func (o *Organization) Members() ([]Member, error) {
 		return nil, err
 	}
 
-	var out []Member
+	var out []*Member
 	for _, m := range members {
 		mem, err := o.c.Member(m.Username)
 		if err != nil {
 			return nil, err
 		}
-		out = append(out, *mem)
+		out = append(out, mem)
 	}
 	return out, nil
 }
 
 // Get a Organization's boards
-func (o *Organization) Boards() ([]Board, error) {
-	b, err := o.c.Request("GET", orgurl+"/"+o.name+"/boards", nil, nil)
+func (o *Organization) Boards() ([]*Board, error) {
+	b, err := o.c.Request("GET", orgurl+"/"+o.Name+"/boards", nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	var boards []boardJson
+	var boards []*Board
 
 	err = json.Unmarshal(b, &boards)
 
@@ -86,15 +76,9 @@ func (o *Organization) Boards() ([]Board, error) {
 		return nil, err
 	}
 
-	var out []Board
-	for _, bd := range boards {
-		bjson := bd
-		board := Board{
-			id:   bd.Id,
-			c:    o.c,
-			json: &bjson,
-		}
-		out = append(out, board)
+	for _, b := range boards {
+		b.c = o.c
 	}
-	return out, nil
+
+	return boards, nil
 }

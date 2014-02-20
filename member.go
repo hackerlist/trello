@@ -7,7 +7,8 @@ import (
 
 const memberurl = "members"
 
-type memberJson struct {
+// Trello Member.
+type Member struct {
 	Id              string
 	Username        string
 	FullName        string
@@ -15,14 +16,7 @@ type memberJson struct {
 	Bio             string
 	IdOrganizations []string
 	IdBoards        []string
-}
-
-// Trello Member.
-type Member struct {
-	username string
-	c        *Client
-
-	json *memberJson
+	c               *Client `json:"-"`
 }
 
 // Member retrieves a trello member's (user) info
@@ -34,34 +28,13 @@ func (c *Client) Member(username string) (*Member, error) {
 	}
 
 	m := Member{
-		username: username,
-		c:        c,
+		c: c,
 	}
 
-	err = json.Unmarshal(b, &m.json)
+	err = json.Unmarshal(b, &m)
 	if err != nil {
 		return nil, err
 	}
 
 	return &m, nil
-}
-
-func (m *Member) Id() string {
-	return m.json.Id
-}
-
-func (m *Member) Username() string {
-	return m.json.Username
-}
-
-func (m *Member) FullName() string {
-	return m.json.FullName
-}
-
-func (m *Member) Url() string {
-	return m.json.Url
-}
-
-func (m *Member) Bio() string {
-	return m.json.Bio
 }
