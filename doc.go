@@ -24,4 +24,3 @@ curl -s "https://api.trello.com/1/cards/:cardid/checklists?token=XXX&key=XXX" | 
 
 func (cl *Checklist) Checklists() ([]Checklist, error)
 */
-
