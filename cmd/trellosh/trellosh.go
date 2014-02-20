@@ -84,7 +84,7 @@ func main() {
 					if b, err := c.CreateBoard(f[1], nil); err != nil {
 						fmt.Printf("createboard error: %s\n", err)
 					} else {
-						boardsprint([]trello.Board{b})
+						boardsprint([]trello.Board{*b})
 					}
 				}
 			default:
@@ -146,7 +146,17 @@ func boardrepl(id string, sc *bufio.Scanner) error {
 				if len(f) > 1 {
 					listrepl(f[1], sc)
 				} else {
-					fmt.Println("missing list argument\n")
+					fmt.Println("usage: list id\n")
+				}
+			case "addlist":
+				if len(f) > 1 {
+					if list, err := board.AddList(f[1]); err != nil {
+						fmt.Printf("addlist error: %s\n", err)
+					} else {
+						listsprint([]trello.List{*list})
+					}
+				} else {
+					fmt.Println("usage: newlist name\n")
 				}
 			case "members":
 				last = func() {
@@ -179,7 +189,7 @@ func boardrepl(id string, sc *bufio.Scanner) error {
 				fallthrough
 			case "help":
 				fmt.Printf("commands:\n")
-				for _, cmd := range []string{"lists", "list id", "invite email type fullname...", "addmember id type"} {
+				for _, cmd := range []string{"lists", "list id", "addlist name", "invite email type fullname...", "addmember id type"} {
 					fmt.Printf("  %s\n", cmd)
 				}
 			case "exit":

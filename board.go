@@ -81,6 +81,28 @@ func (b *Board) Cards() ([]Card, error) {
 	return out, nil
 }
 
+// AddList creates a new list with the given name on a Board.
+func (b *Board) AddList(name string) (*List, error) {
+	qp := url.Values{"name": {name}}
+	js, err := b.c.Request("POST", boardurl+"/"+b.id+"/lists", nil, qp)
+	if err != nil {
+		return nil, err
+	}
+
+	list := List{
+		c: b.c,
+	}
+
+	err = json.Unmarshal(js, &list.json)
+	if err != nil {
+		return nil, err
+	}
+
+	list.id = list.json.Id
+
+	return &list, nil
+}
+
 func (b *Board) Lists() ([]List, error) {
 	js, err := b.c.Request("GET", boardurl+"/"+b.id+"/lists", nil, nil)
 	if err != nil {
