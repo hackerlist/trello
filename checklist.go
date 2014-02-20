@@ -14,17 +14,12 @@ type CheckItem struct {
 	State string
 }
 
-type checklistJson struct {
+type Checklist struct {
 	Id         string
 	Pos        float64
 	Name       string
 	CheckItems []CheckItem
-}
-
-type Checklist struct {
-	id   string
-	c    *Client
-	json *checklistJson
+	c          *Client `json:"-"`
 }
 
 // Checklist retrieves a checklist by id
@@ -36,22 +31,13 @@ func (c *Client) Checklist(id string) (*Checklist, error) {
 	}
 
 	checklist := Checklist{
-		id: id,
 		c:  c,
 	}
 
-	err = json.Unmarshal(b, &checklist.json)
+	err = json.Unmarshal(b, &checklist)
 	if err != nil {
 		return nil, err
 	}
 
 	return &checklist, nil
-}
-
-func (cl *Checklist) Id() string {
-	return cl.json.Id
-}
-
-func (cl *Checklist) Name() string {
-	return cl.json.Name
 }

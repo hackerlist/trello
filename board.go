@@ -8,7 +8,8 @@ import (
 
 const boardurl = "boards"
 
-type boardJson struct {
+// Trello Board.
+type Board struct {
 	Closed           bool
 	DateLastActivity *time.Time
 	DateLastView     *time.Time
@@ -29,22 +30,16 @@ type boardJson struct {
 	//	Starred
 	//	Subcribed
 	Url string
-}
-
-// Trello Board.
-type Board struct {
-	id   string
-	c    *Client
-	json *boardJson
+	c   *Client `json:"-"`
 }
 
 // Get a Member's boards
-func (m *Member) Boards() ([]Board, error) {
-	b, err := m.c.Request("GET", memberurl+"/"+m.username+"/boards", nil, nil)
+func (m *Member) Boards() ([]*Board, error) {
+	b, err := m.c.Request("GET", memberurl+"/"+m.Username+"/boards", nil, nil)
 	if err != nil {
 		return nil, err
 	}
-	var boards []boardJson
+	var boards []*Board
 
 	err = json.Unmarshal(b, &boards)
 
@@ -52,17 +47,11 @@ func (m *Member) Boards() ([]Board, error) {
 		return nil, err
 	}
 
-	var out []Board
-	for _, bd := range boards {
-		bjson := bd
-		board := Board{
-			id:   bd.Id,
-			c:    m.c,
-			json: &bjson,
-		}
-		out = append(out, board)
+	for _, b := range boards {
+		b.c = m.c
 	}
-	return out, nil
+
+	return boards, nil
 }
 
 // CreateBoard creats a new board with the given name. Extra options can be passed
@@ -83,12 +72,10 @@ func (c *Client) CreateBoard(name string, extra url.Values) (*Board, error) {
 		c: c,
 	}
 
-	err = json.Unmarshal(b, &board.json)
+	err = json.Unmarshal(b, &board)
 	if err != nil {
 		return nil, err
 	}
-
-	board.id = board.json.Id
 
 	return &board, nil
 }
@@ -100,11 +87,10 @@ func (c *Client) Board(id string) (*Board, error) {
 	}
 
 	board := Board{
-		id: id,
-		c:  c,
+		c: c,
 	}
 
-	err = json.Unmarshal(b, &board.json)
+	err = json.Unmarshal(b, &board)
 	if err != nil {
 		return nil, err
 	}
@@ -112,29 +98,13 @@ func (c *Client) Board(id string) (*Board, error) {
 	return &board, nil
 }
 
-func (b *Board) Desc() string {
-	return b.json.Desc
-}
-
-func (b *Board) Name() string {
-	return b.json.Name
-}
-
-func (b *Board) Id() string {
-	return b.json.Id
-}
-
-func (b *Board) ShortUrl() string {
-	return b.json.ShortUrl
-}
-
-func (b *Board) Cards() ([]Card, error) {
-	js, err := b.c.Request("GET", boardurl+"/"+b.id+"/cards", nil, nil)
+func (b *Board) Cards() ([]*Card, error) {
+	js, err := b.c.Request("GET", boardurl+"/"+b.Id+"/cards", nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	var cards []cardJson
+	var cards []*Card
 
 	err = json.Unmarshal(js, &cards)
 
@@ -142,23 +112,17 @@ func (b *Board) Cards() ([]Card, error) {
 		return nil, err
 	}
 
-	var out []Card
-	for _, cd := range cards {
-		cjson := cd
-		card := Card{
-			id:   cd.Id,
-			c:    b.c,
-			json: &cjson,
-		}
-		out = append(out, card)
+	for _, c := range cards {
+		c.c = b.c
 	}
-	return out, nil
+
+	return cards, nil
 }
 
 // AddList creates a new list with the given name on a Board.
 func (b *Board) AddList(name string) (*List, error) {
 	qp := url.Values{"name": {name}}
-	js, err := b.c.Request("POST", boardurl+"/"+b.id+"/lists", nil, qp)
+	js, err := b.c.Request("POST", boardurl+"/"+b.Id+"/lists", nil, qp)
 	if err != nil {
 		return nil, err
 	}
@@ -167,18 +131,16 @@ func (b *Board) AddList(name string) (*List, error) {
 		c: b.c,
 	}
 
-	err = json.Unmarshal(js, &list.json)
+	err = json.Unmarshal(js, &list)
 	if err != nil {
 		return nil, err
 	}
 
-	list.id = list.json.Id
-
 	return &list, nil
 }
 
-func (b *Board) Lists() ([]List, error) {
-	js, err := b.c.Request("GET", boardurl+"/"+b.id+"/lists", nil, nil)
+func (b *Board) Lists() ([]*List, error) {
+	js, err := b.c.Request("GET", boardurl+"/"+b.Id+"/lists", nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -191,20 +153,20 @@ func (b *Board) Lists() ([]List, error) {
 		return nil, err
 	}
 
-	var out []List
+	var out []*List
 	for _, ld := range lists {
 		list, err := b.c.List(ld.Id)
 		if err != nil {
 			return nil, err
 		}
-		out = append(out, *list)
+		out = append(out, list)
 	}
 	return out, nil
 }
 
 // Members returns a list of the members of a board.
-func (b *Board) Members() ([]Member, error) {
-	js, err := b.c.Request("GET", boardurl+"/"+b.id+"/members", nil, nil)
+func (b *Board) Members() ([]*Member, error) {
+	js, err := b.c.Request("GET", boardurl+"/"+b.Id+"/members", nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -217,13 +179,13 @@ func (b *Board) Members() ([]Member, error) {
 		return nil, err
 	}
 
-	var out []Member
+	var out []*Member
 	for _, md := range memjs {
 		member, err := b.c.Member(md.Id)
 		if err != nil {
 			return nil, err
 		}
-		out = append(out, *member)
+		out = append(out, member)
 	}
 	return out, nil
 }
@@ -233,7 +195,7 @@ func (b *Board) Members() ([]Member, error) {
 // typ may be one of normal, observer or admin.
 func (b *Board) Invite(email, fullname, typ string) error {
 	extra := url.Values{"email": {email}, "fullName": {fullname}, "type": {typ}}
-	_, err := b.c.Request("PUT", boardurl+"/"+b.id+"/members", nil, extra)
+	_, err := b.c.Request("PUT", boardurl+"/"+b.Id+"/members", nil, extra)
 	if err != nil {
 		return err
 	}
@@ -244,7 +206,7 @@ func (b *Board) Invite(email, fullname, typ string) error {
 // typ may be one of normal, observer or admin.
 func (b *Board) AddMember(id, typ string) error {
 	extra := url.Values{"type": {typ}}
-	_, err := b.c.Request("PUT", boardurl+"/"+b.id+"/members/"+id, nil, extra)
+	_, err := b.c.Request("PUT", boardurl+"/"+b.Id+"/members/"+id, nil, extra)
 	if err != nil {
 		return err
 	}

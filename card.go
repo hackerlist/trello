@@ -8,7 +8,7 @@ import (
 
 const cardurl = "cards"
 
-type cardJson struct {
+type Card struct {
 	//	Badges
 	//	CheckItemStates
 	Closed           bool
@@ -32,20 +32,7 @@ type cardJson struct {
 	ShortUrl              string
 	Subscribed            bool
 	Url                   string
-}
-
-type Card struct {
-	id   string
-	c    *Client
-	json *cardJson
-}
-
-func (c *Card) Id() string {
-	return c.json.Id
-}
-
-func (c *Card) Name() string {
-	return c.json.Name
+	c                     *Client `json"-"`
 }
 
 // Card retrieves a trello card by ID
@@ -57,11 +44,10 @@ func (c *Client) Card(id string) (*Card, error) {
 	}
 
 	card := Card{
-		id: id,
-		c:  c,
+		c: c,
 	}
 
-	err = json.Unmarshal(b, &card.json)
+	err = json.Unmarshal(b, &card)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +57,7 @@ func (c *Client) Card(id string) (*Card, error) {
 
 func (c *Card) AddComment(comment string) error {
 	extra := url.Values{"text": {comment}}
-	_, err := c.c.Request("POST", cardurl+"/"+c.id+"/actions/comments", nil, extra)
+	_, err := c.c.Request("POST", cardurl+"/"+c.Id+"/actions/comments", nil, extra)
 	if err != nil {
 		return err
 	}
@@ -79,42 +65,35 @@ func (c *Card) AddComment(comment string) error {
 }
 
 // Checklists retrieves all checklists from a trello card
-func (c *Card) Checklists() ([]Checklist, error) {
-	b, err := c.c.Request("GET", cardurl+"/"+c.id+"/checklists", nil, nil)
+func (c *Card) Checklists() ([]*Checklist, error) {
+	b, err := c.c.Request("GET", cardurl+"/"+c.Id+"/checklists", nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	var cl []checklistJson
+	var cl []*Checklist
 
 	err = json.Unmarshal(b, &cl)
 	if err != nil {
 		return nil, err
 	}
 
-	var out []Checklist
 	for _, ci := range cl {
-		cljson := ci
-		checklist := Checklist{
-			id:   ci.Id,
-			c:    c.c,
-			json: &cljson,
-		}
-		out = append(out, checklist)
+		ci.c = c.c
 	}
 
-	return out, nil
+	return cl, nil
 }
 
 // Actions retrieves a list of all actions (e.g. events, activity)
 // performed on a card
-func (c *Card) Actions() ([]Action, error) {
-	b, err := c.c.Request("GET", cardurl+"/"+c.id+"/actions", nil, nil)
+func (c *Card) Actions() ([]*Action, error) {
+	b, err := c.c.Request("GET", cardurl+"/"+c.Id+"/actions", nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	var act []actionJson
+	var act []*Action
 
 	err = json.Unmarshal(b, &act)
 
@@ -122,16 +101,9 @@ func (c *Card) Actions() ([]Action, error) {
 		return nil, err
 	}
 
-	var out []Action
-	for _, ad := range act {
-		ajson := ad
-		action := Action{
-			id:   ad.Id,
-			c:    c.c,
-			json: &ajson,
-		}
-		out = append(out, action)
+	for _, a := range act {
+		a.c = c.c
 	}
 
-	return out, nil
+	return act, nil
 }

@@ -6,18 +6,13 @@ import (
 
 var listurl = "lists"
 
-type listJson struct {
+type List struct {
 	Closed  bool
 	Id      string
 	IdBoard string
 	Name    string
 	Pos     float64
-}
-
-type List struct {
-	id   string
-	c    *Client
-	json *listJson
+	c       *Client `json:"-"`
 }
 
 func (c *Client) List(id string) (*List, error) {
@@ -27,11 +22,10 @@ func (c *Client) List(id string) (*List, error) {
 	}
 
 	l := List{
-		id: id,
-		c:  c,
+		c: c,
 	}
 
-	err = json.Unmarshal(b, &l.json)
+	err = json.Unmarshal(b, &l)
 	if err != nil {
 		return nil, err
 	}
@@ -39,21 +33,13 @@ func (c *Client) List(id string) (*List, error) {
 	return &l, nil
 }
 
-func (l *List) Id() string {
-	return l.json.Id
-}
-
-func (l *List) Name() string {
-	return l.json.Name
-}
-
-func (l *List) Cards() ([]Card, error) {
-	js, err := l.c.Request("GET", listurl+"/"+l.id+"/cards", nil, nil)
+func (l *List) Cards() ([]*Card, error) {
+	js, err := l.c.Request("GET", listurl+"/"+l.Id+"/cards", nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	var cards []cardJson
+	var cards []*Card
 
 	err = json.Unmarshal(js, &cards)
 
@@ -61,15 +47,9 @@ func (l *List) Cards() ([]Card, error) {
 		return nil, err
 	}
 
-	var out []Card
-	for _, cd := range cards {
-		cjson := cd
-		card := Card{
-			id:   cd.Id,
-			c:    l.c,
-			json: &cjson,
-		}
-		out = append(out, card)
+	for _, c := range cards {
+		c.c = l.c
 	}
-	return out, nil
+
+	return cards, nil
 }

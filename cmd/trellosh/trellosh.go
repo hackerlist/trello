@@ -84,7 +84,7 @@ func main() {
 					if b, err := c.CreateBoard(f[1], nil); err != nil {
 						fmt.Printf("createboard error: %s\n", err)
 					} else {
-						boardsprint([]trello.Board{*b})
+						boardsprint([]*trello.Board{b})
 					}
 				}
 			default:
@@ -102,10 +102,10 @@ func main() {
 	}
 }
 
-func boardsprint(boards []trello.Board) {
+func boardsprint(boards []*trello.Board) {
 	fmt.Printf("%-24.24s %-20.20s %-24.24s:\n", "id", "name", "shorturl")
 	for _, b := range boards {
-		fmt.Printf("%24.24s %-20.20s %-24.24s\n", b.Id(), b.Name(), b.ShortUrl())
+		fmt.Printf("%24.24s %-20.20s %-24.24s\n", b.Id, b.Name, b.ShortUrl)
 	}
 }
 
@@ -130,7 +130,7 @@ func boardrepl(id string, sc *bufio.Scanner) error {
 
 	last()
 
-	fmt.Printf("board %s> ", board.Name())
+	fmt.Printf("board %s> ", board.Name)
 	for sc.Scan() {
 		f := strings.Fields(sc.Text())
 		if len(f) < 1 {
@@ -153,7 +153,7 @@ func boardrepl(id string, sc *bufio.Scanner) error {
 					if list, err := board.AddList(f[1]); err != nil {
 						fmt.Printf("addlist error: %s\n", err)
 					} else {
-						listsprint([]trello.List{*list})
+						listsprint([]*trello.List{list})
 					}
 				} else {
 					fmt.Println("usage: newlist name\n")
@@ -196,15 +196,15 @@ func boardrepl(id string, sc *bufio.Scanner) error {
 				return nil
 			}
 		}
-		fmt.Printf("board %s> ", board.Name())
+		fmt.Printf("board %s> ", board.Name)
 	}
 	return sc.Err()
 }
 
-func listsprint(lists []trello.List) {
+func listsprint(lists []*trello.List) {
 	fmt.Printf("%-24.24s %-20.20s\n", "id", "name")
 	for _, l := range lists {
-		fmt.Printf("%-24.24s %-20.20s\n", l.Id(), l.Name())
+		fmt.Printf("%-24.24s %-20.20s\n", l.Id, l.Name)
 	}
 }
 
@@ -229,7 +229,7 @@ func listrepl(id string, sc *bufio.Scanner) error {
 
 	last()
 
-	fmt.Printf("list %s> ", list.Name())
+	fmt.Printf("list %s> ", list.Name)
 	for sc.Scan() {
 		f := strings.Fields(sc.Text())
 		if len(f) < 1 {
@@ -258,15 +258,15 @@ func listrepl(id string, sc *bufio.Scanner) error {
 				return nil
 			}
 		}
-		fmt.Printf("list %s> ", list.Name())
+		fmt.Printf("list %s> ", list.Name)
 	}
 	return sc.Err()
 }
 
-func cardsprint(cards []trello.Card) {
+func cardsprint(cards []*trello.Card) {
 	fmt.Printf("%-24.24s %-20.20s\n", "id", "name")
 	for _, c := range cards {
-		fmt.Printf("%-24.24s %-20.20s\n", c.Id(), c.Name())
+		fmt.Printf("%-24.24s %-20.20s\n", c.Id, c.Name)
 	}
 }
 
@@ -299,7 +299,7 @@ func cardrepl(id string, sc *bufio.Scanner) error {
 
 	last()
 
-	fmt.Printf("card %s> ", card.Name())
+	fmt.Printf("card %s> ", card.Name)
 	for sc.Scan() {
 		f := strings.Fields(sc.Text())
 		if len(f) < 1 {
@@ -316,7 +316,7 @@ func cardrepl(id string, sc *bufio.Scanner) error {
 				}
 			case "actions":
 				last = actions
-				last()				
+				last()
 			case "checklists":
 				last = checklist
 				last()
@@ -331,28 +331,28 @@ func cardrepl(id string, sc *bufio.Scanner) error {
 				return nil
 			}
 		}
-		fmt.Printf("card %s> ", card.Name())
+		fmt.Printf("card %s> ", card.Name)
 	}
 	return sc.Err()
 }
 
-func actionsprint(actions []trello.Action) {
+func actionsprint(actions []*trello.Action) {
 	fmt.Printf("%-24.24s %-20.20s %-20.20s\n", "id", "type", "text")
 	for _, a := range actions {
-		fmt.Printf("%-24.24s %-20.20s %-20.20s\n", a.Id(), a.Type(), a.DataText())
+		fmt.Printf("%-24.24s %-20.20s %-20.20s\n", a.Id, a.Type, a.Data.Text)
 	}
 }
 
-func checklistsprint(checklists []trello.Checklist) {
+func checklistsprint(checklists []*trello.Checklist) {
 	fmt.Printf("%-24.24s %-20.20s\n", "id", "name")
 	for _, cl := range checklists {
-		fmt.Printf("%-24.24s %-20.20s\n", cl.Id(), cl.Name())
+		fmt.Printf("%-24.24s %-20.20s\n", cl.Id, cl.Name)
 	}
 }
 
-func membersprint(members []trello.Member) {
+func membersprint(members []*trello.Member) {
 	fmt.Printf("%-24.24s %-20.20s %-20.20s\n", "id", "username", "fullname")
 	for _, u := range members {
-		fmt.Printf("%-24.24s %-20.20s %-20.20s\n", u.Id(), u.Username(), u.FullName())
+		fmt.Printf("%-24.24s %-20.20s %-20.20s\n", u.Id, u.Username, u.FullName)
 	}
 }
