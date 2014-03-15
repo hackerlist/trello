@@ -103,7 +103,7 @@ func main() {
 }
 
 func boardsprint(boards []*trello.Board) {
-	fmt.Printf("%-24.24s %-20.20s %-24.24s:\n", "id", "name", "shorturl")
+	fmt.Printf("%-24.24s %-20.20s %-24.24s\n", "id", "name", "shorturl")
 	for _, b := range boards {
 		fmt.Printf("%24.24s %-20.20s %-24.24s\n", b.Id, b.Name, b.ShortUrl)
 	}

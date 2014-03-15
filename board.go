@@ -16,7 +16,7 @@ type Board struct {
 	Desc             string
 	//	DescData string
 	Id             string
-	IdOrganization string
+	IdOrganization *string
 	//	Invitations []string
 	Invited bool
 	//	LabelNames []LabelName
