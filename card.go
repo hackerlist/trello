@@ -32,7 +32,7 @@ type Card struct {
 	ShortUrl              string
 	Subscribed            bool
 	Url                   string
-	c                     *Client `json"-"`
+	c                     *Client `json:"-"`
 }
 
 // Card retrieves a trello card by ID
