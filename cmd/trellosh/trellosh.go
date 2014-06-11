@@ -247,11 +247,19 @@ func listrepl(id string, sc *bufio.Scanner) error {
 				} else {
 					fmt.Println("missing card argument\n")
 				}
+			case "addcard":
+				if len(f) > 1 {
+					if ca, err := list.AddCard(f[1], nil); err != nil {
+						fmt.Printf("addcard error: %s\n", err)
+					} else {
+						cardsprint([]*trello.Card{ca})
+					}
+				}
 			default:
 				fallthrough
 			case "help":
 				fmt.Printf("commands:\n")
-				for _, cmd := range []string{"cards", "card id"} {
+				for _, cmd := range []string{"cards", "card id", "addcard name"} {
 					fmt.Printf("  %s\n", cmd)
 				}
 			case "exit":
