@@ -35,6 +35,43 @@ type Card struct {
 	c                     *Client `json:"-"`
 }
 
+// CreateCard create a card with given name on a given board. Extra options can
+// be passed through the extra parameter. For details on options, see
+// https://trello.com/docs/api/card/index.html#post-1-cards
+func (c *Client) CreateCard(name string, idList string, extra url.Values) (*Card, error) {
+	qp := url.Values{"name": {name}, "idList": {idList}}
+	for k, v := range extra {
+		qp[k] = v
+	}
+	//check required arguments 'urlSource'
+	if _, found := qp["urlSource"]; !found {
+		qp["urlSource"] = []string{"null"}
+	}
+
+	cardData, err := c.Request("POST", cardurl, nil, qp)
+	if err != nil {
+		return nil, err
+	}
+
+	card := Card{
+		c: c,
+	}
+
+	err = json.Unmarshal(cardData, &card)
+	if err != nil {
+		return nil, err
+	}
+
+	return &card, nil
+}
+
+// AddCard add a card with given name to a card. Extra options can
+// be passedthrough the extra parameter. For details on options, see
+// https://trello.com/docs/api/card/index.html#post-1-cards
+func (l *List) AddCard(name string, extra url.Values) (*Card, error) {
+	return l.c.CreateCard(name, l.Id, extra)
+}
+
 // Card retrieves a trello card by ID
 func (c *Client) Card(id string) (*Card, error) {
 	b, err := c.Request("GET", cardurl+"/"+id, nil, nil)
@@ -66,7 +103,7 @@ func (c *Card) AddComment(comment string) error {
 
 // AddChecklist created a new checklist on the card.
 func (c *Card) AddChecklist(name string) (*Checklist, error) {
-	qp := url.Values{"name":{name}}
+	qp := url.Values{"name": {name}}
 	b, err := c.c.Request("POST", cardurl+"/"+c.Id+"/checklists", nil, qp)
 	if err != nil {
 		return nil, err
